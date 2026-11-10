@@ -1,0 +1,373 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>عالم الحظ - ALAM</title><style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:#0f0f1a;color:#fff;min-height:100vh}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#1a1a2e;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:18px}.logo span{color:#ffd700}
+.bal{background:#ffd700;color:#000;padding:6px 12px;border-radius:20px;font-weight:900;font-size:13px}
+.menu-btn{font-size:22px;background:none;border:none;color:#fff;cursor:pointer}
+.page{display:none;padding:14px;padding-bottom:90px}.page.active{display:block}
+.card{background:#1e1e32;border-radius:18px;padding:14px;margin-top:12px}
+h3{font-size:16px}h4{font-size:14px;margin-top:6px}
+.btn{display:block;width:100%;padding:12px;border:none;border-radius:14px;font-weight:900;cursor:pointer;margin-top:10px;font-size:14px}
+.btn.gold{background:linear-gradient(90deg,#ffd700,#ffaa00);color:#000}.btn.green{background:#00c853;color:#fff}.btn.blue{background:#2962ff;color:#fff}.btn.red{background:#ff5252;color:#fff}.btn.gray{background:#444;color:#fff}
+.btn.small{width:auto;padding:8px 12px;font-size:12px;display:inline-block;margin:0}
+input,select{width:100%;padding:11px;border-radius:12px;border:none;background:#2a2a44;color:#fff;margin-top:8px;font-size:14px;outline:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.game-card{background:#25253d;border-radius:16px;padding:12px;text-align:center;cursor:pointer;border:2px solid transparent}
+.game-card img{width:70px;height:70px;object-fit:cover;border-radius:12px}
+.game-card b{display:block;margin-top:6px;font-size:13px}.game-card small{color:#aaa;font-size:11px}
+.wheel-wrap{position:relative;width:260px;height:260px;margin:16px auto}
+#wheel{width:100%;height:100%;border-radius:50%;border:6px solid #ffd700;background:conic-gradient(#ff5252 0 60deg,#ffd700 60deg 120deg,#00c853 120deg 180deg,#2962ff 180deg 240deg,#9c27b0 240deg 300deg,#ff9800 300deg 360deg);transition:transform 4s cubic-bezier(.1,.8,.2,1)}
+.pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:30px;z-index:2}
+.history-item{display:flex;justify-content:space-between;background:#2a2a44;padding:10px;border-radius:10px;margin-top:8px;font-size:13px}
+.sidebar{position:fixed;top:0;right:-260px;width:250px;height:100%;background:#1a1a2e;z-index:99;transition:.3s;padding:20px}
+.sidebar.open{right:0}.sidebar a{display:block;color:#fff;text-decoration:none;padding:12px;border-bottom:1px solid #333;font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:98}.overlay.show{display:block}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;display:flex;justify-content:space-around;padding:10px;z-index:10}
+.bottom-nav button{background:none;border:none;color:#aaa;font-size:12px}.bottom-nav button.active{color:#ffd700}
+.r-code-row{display:flex;justify-content:space-between;background:#2a2a44;padding:10px;border-radius:10px;margin-top:8px;font-size:13px}
+.badge{background:#ff5252;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px}
+</style></head><body>
+<div id="adminBannerBar" style="display:none;background:#ffd700;color:#000;text-align:center;padding:10px;font-weight:900;font-size:13px"></div>
+<div class="topbar"><button class="menu-btn" onclick="toggleMenu()">☰</button><div class="logo">عالم <span>الحظ</span> 🎰</div><div class="bal" onclick="openPay('deposit')">💰 <span id="balTop">0.00$</span></div></div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="sidebar" id="sidebar">
+<a href="#" onclick="goHome();return false">🏠 الرئيسية</a>
+<a href="#" onclick="openPay('deposit');return false">💳 شحن</a>
+<a href="#" onclick="openPay('withdraw');return false">💸 سحب</a>
+<a href="#" onclick="openHistory();return false">📜 سجل اللعب</a>
+<a href="#" onclick="openInvite();return false">🎁 دعوة</a>
+<a href="#" onclick="openAdmin();return false">👑 لوحة تحكم المالك</a>
+<a href="#" onclick="logout();return false">🚪 خروج</a>
+</div>
+
+<!-- الرئيسية -->
+<div class="page active" id="homePage">
+<div class="card" style="text-align:center"><h3 id="homeUser">أهلاً 👋</h3><p style="color:#aaa;font-size:12px;margin-top:6px">العب واربح - اختر لعبتك</p></div>
+<div id="homeGames"></div>
+<div class="card"><h3>🎡 روليت 100</h3><p style="font-size:12px;color:#aaa">100 مقعد - فائز واحد ياخذ الجائزة كلها</p><button class="btn gold" onclick="openRoulette100()">دخول روليت 100</button></div>
+<div class="card"><h3>🎟️ يانصيب</h3><p style="font-size:12px;color:#aaa">تكت بـ 1$ - 5 فائزين × 50$</p><button class="btn blue" onclick="openLottery100()">دخول اليانصيب</button></div>
+</div>
+
+<!-- تسجيل -->
+<div class="page" id="authPage"><div class="card"><h3 style="text-align:center">دخول / تسجيل</h3>
+<input id="authName" placeholder="اسمك"><input id="authEmail" placeholder="ايميلك"><input id="authPass" type="password" placeholder="كلمة السر">
+<button class="btn gold" onclick="doLogin()">دخول</button><button class="btn green" onclick="doRegister()">تسجيل جديد</button>
+<p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">اول حساب يسجل يصير مالك تلقائياً 👑</p></div></div>
+
+<!-- لعبة العجلة -->
+<div class="page" id="gamePage"><div class="card" style="text-align:center"><button class="btn small gray" onclick="goHome()">← رجوع</button>
+<h3 id="gameTitle" style="margin-top:10px">عجلة</h3><p id="gameInfo" style="font-size:12px;color:#aaa"></p>
+<div class="wheel-wrap"><div class="pointer">▼</div><div id="wheel"></div></div>
+<p id="wheelResult" style="font-weight:900;margin-top:8px"></p>
+<button class="btn gold" onclick="spinWheel()">🎲 العب الآن</button>
+<div id="gameHistory"></div></div></div>
+
+<!-- شحن / سحب -->
+<div class="page" id="payPage"><div class="card"><button class="btn small gray" onclick="goHome()">← رجوع</button><h3 id="payTitle" style="margin-top:10px">شحن</h3>
+<input id="payAmount" type="number" placeholder="المبلغ $"><input id="payCode" placeholder="كود التحويل / رقم الحوالة">
+<button class="btn green" onclick="submitPay()">ارسال الطلب ✅</button><p style="font-size:11px;color:#aaa;margin-top:8px">اكتب المبلغ وكود التحويل، المالك يراجع ويضيف لك الرصيد.</p></div></div>
+
+<!-- سجل -->
+<div class="page" id="historyPage"><div class="card"><button class="btn small gray" onclick="goHome()">← رجوع</button><h3 style="margin-top:10px">📜 سجل اللعب</h3><div id="historyBox"></div></div></div>
+
+<!-- دعوة -->
+<div class="page" id="invitePage"><div class="card"><button class="btn small gray" onclick="goHome()">← رجوع</button><h3 style="margin-top:10px">🎁 دعوة صديق</h3><p style="font-size:13px">شارك رابطك واربح 1$ على كل صديق يسجل</p><input id="inviteLink" readonly><button class="btn gold" onclick="copyInvite()">نسخ الرابط</button></div></div>
+<!-- روليت 100 -->
+<div class="page" id="roulette100Page"><div class="card">
+<button class="btn small gray" onclick="goHome()">← رجوع</button>
+<h3 style="margin-top:10px">🎡 روليت 100</h3>
+<div style="display:flex;gap:6px;margin-top:10px">
+<button class="btn small gold" onclick="setRoulette100('normal')">عادي 1$</button>
+<button class="btn small blue" onclick="setRoulette100('medium')">متوسط 5$</button>
+<button class="btn small red" onclick="setRoulette100('legend')">أسطوري 10$</button>
+</div>
+<p id="roulette100Info" style="font-size:13px;margin-top:10px"></p>
+<div id="roulette100Countdown" style="display:none;background:#ff5252;padding:10px;border-radius:12px;text-align:center;font-weight:900;margin-top:10px">⏳ السحب بعد <span id="roulette100CountdownNum">30</span> ثانية</div>
+<div id="roulette100Seats" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px"></div>
+<button class="btn gold" onclick="buyRoulette100Seat()">🎟️ احجز مقعدك</button>
+<div id="roulette100History"></div>
+</div></div>
+
+<!-- يانصيب -->
+<div class="page" id="lottery100Page"><div class="card">
+<button class="btn small gray" onclick="goHome()">← رجوع</button>
+<h3 style="margin-top:10px">🎟️ يانصيب - جولة <span id="lotteryRoundLabel">1</span></h3>
+<p style="font-size:12px;color:#aaa">تكت 1$ - 5 فائزين كل واحد 50$</p>
+<input id="lottery100Qty" type="number" value="1" min="1" placeholder="عدد التكتات">
+<button class="btn gold" onclick="buyLottery100Codes()">شراء تكتات 🎟️</button>
+<div id="lottery100Codes" style="margin-top:12px"></div>
+<button class="btn red" id="lottery100OwnerBtn" style="display:none" onclick="ownerDrawLottery100()">👑 سحب الفائزين (مالك)</button>
+<div id="lottery100History" style="margin-top:12px"></div>
+</div></div>
+
+<!-- لوحة تحكم -->
+<div class="page" id="adminPage"><div class="card">
+<button class="btn small gray" onclick="goHome()">← رجوع</button>
+<h3 style="text-align:center;margin-top:8px">👑 لوحة تحكم المالك</h3>
+<h4>🔛 تشغيل / اطفاء</h4><div id="adminToggles"></div>
+<h4 style="margin-top:14px">💰 تعديل الاسعار والجوائز</h4><div id="adminPrices"></div>
+<button class="btn green" onclick="saveAdminPrices()">💾 حفظ الاسعار</button>
+<h4 style="margin-top:14px">📢 اعلان أعلى الموقع</h4>
+<input id="adminBanner" placeholder="اكتب الاعلان...">
+<label style="display:block;margin-top:8px;font-size:13px"><input type="checkbox" id="adminBannerOn" style="width:auto"> اظهار الاعلان</label>
+<button class="btn gold" onclick="saveAdminBanner()">💾 حفظ الاعلان</button>
+<h4 style="margin-top:14px">🛠️ وضع الصيانة</h4>
+<label style="font-size:13px"><input type="checkbox" id="adminMaintOn" style="width:auto"> قفل الموقع كله</label>
+<input id="adminMaintText" placeholder="رسالة الصيانة" value="الموقع متوقف للصيانة، نرجع قريباً">
+<button class="btn" onclick="saveAdminMaint()">💾 حفظ الصيانة</button>
+<h4 style="margin-top:14px">📱 روابط التواصل</h4>
+<input id="adminTg" placeholder="رابط تليكرام">
+<input id="adminIg" placeholder="رابط انستكرام">
+<input id="adminFb" placeholder="رابط فيسبوك">
+<button class="btn green" onclick="saveAdminSocial()">💾 حفظ الروابط</button>
+<h4 style="margin-top:14px">👥 الاعضاء</h4><div id="adminUsers"></div>
+<h4 style="margin-top:14px">⚠️ تصفير</h4>
+<button class="btn red" onclick="adminResetRoulettes()">تصفير كل الروليتات 100</button>
+<button class="btn red" onclick="adminResetLottery()">تصفير اليانصيب</button>
+</div></div>
+
+<div class="bottom-nav">
+<button onclick="goHome()" id="navHome" class="active">🏠<br>الرئيسية</button>
+<button onclick="openPay('deposit')">💳<br>شحن</button>
+<button onclick="openRoulette100()">🎡<br>روليت 100</button>
+<button onclick="openLottery100()">🎟️<br>يانصيب</button>
+<button onclick="openHistory()">📜<br>سجلي</button>
+</div>
+
+<script>
+src="api"
+let users=JSON.parse(localStorage.getItem('alam_users')||'{}');
+let balances=JSON.parse(localStorage.getItem('alam_balances')||'{}');
+let games=JSON.parse(localStorage.getItem('alam_games')||'{}');
+let current=localStorage.getItem('alam_current')||'';
+let WHEELS=[
+{id:'bronze',name:'🥉 عجلة البرونزي',price:1,win:5,color:'#cd7f32'},
+{id:'silver',name:'🥈 عجلة الفضي',price:3,win:20,color:'#c0c0c0'},
+{id:'gold',name:'🥇 عجلة الذهبي',price:5,win:50,color:'#ffd700'},
+{id:'platinum',name:'💎 عجلة البلاتيني',price:10,win:120,color:'#00e5ff'},
+{id:'diamond',name:'💠 عجلة الماسي',price:20,win:300,color:'#b388ff'}
+];
+let ROULETTES100={normal:{name:'العادي',price:1,prize:80,max:100},medium:{name:'المتوسط',price:5,prize:400,max:100},legend:{name:'الأسطوري',price:10,prize:800,max:100}};
+let curWheel='bronze',curRoulette100='normal',curPay='deposit';
+let roulette100Data=JSON.parse(localStorage.getItem('alam_r100')||'{"normal":[],"medium":[],"legend":[]}');
+let roulette100Winners=JSON.parse(localStorage.getItem('alam_r100w')||'{}');
+let roulette100WinnerTime=JSON.parse(localStorage.getItem('alam_r100wt')||'{}');
+let roulette100Counting=false,roulette100Left=30,roulette100Timer=null,roulette100Buying=false;
+let lottery100Data=JSON.parse(localStorage.getItem('alam_lot')||'[]');
+let lottery100Round=parseInt(localStorage.getItem('alam_lot_round')||'1');
+let adminSettings=JSON.parse(localStorage.getItem('alam_admin')||'{}');
+if(!adminSettings.off)adminSettings.off={};
+if(!adminSettings.prices)adminSettings.prices={};
+if(!adminSettings.banner)adminSettings.banner={text:'',on:false};
+if(!adminSettings.maint)adminSettings.maint={on:false,text:'الموقع متوقف للصيانة، نرجع قريباً'};
+if(!adminSettings.social)adminSettings.social={tg:'',ig:'',fb:''};
+function saveAdmin(){localStorage.setItem('alam_admin',JSON.stringify(adminSettings));applyAdmin();}
+function isOff(id){return !!adminSettings.off[id];}
+function getPrice(id,field,def){return adminSettings.prices[id+'_'+field]!==undefined?adminSettings.prices[id+'_'+field]:def;}
+function pAlert(m){return new Promise(r=>{alert(m);r();});}
+function pConfirm(m){return new Promise(r=>{r(confirm(m));});}
+function saveRoulette100(){localStorage.setItem('alam_r100',JSON.stringify(roulette100Data));localStorage.setItem('alam_r100w',JSON.stringify(roulette100Winners));localStorage.setItem('alam_r100wt',JSON.stringify(roulette100WinnerTime));localStorage.setItem('alam_lot',JSON.stringify(lottery100Data));localStorage.setItem('alam_lot_round',lottery100Round);}
+function myGame(){if(!current)return[];return games[current]||[];}
+function addGame(g){if(!current)return;if(!games[current])games[current]=[];games[current].push(g);localStorage.setItem('alam_games',JSON.stringify(games));}
+function updateBalance(){let b=balances[current]||0;document.getElementById('balTop').innerText=b.toFixed(2)+'$';}
+function hideAll(){document.querySelectorAll('.page').forEach(p=>p.style.display='none');document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));}
+function toggleMenu(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+function toggleMenuIfOpen(){if(document.getElementById('sidebar').classList.contains('open'))toggleMenu();}
+function goHome(){toggleMenuIfOpen();hideAll();document.getElementById('homePage').style.display='block';document.getElementById('navHome').classList.add('active');renderHomeGames();if(current&&users[current]){updateBalance();document.getElementById('homeUser').innerText='أهلاً '+users[current].name+' 👋';}applyAdmin();}
+function goAuth(){hideAll();document.getElementById('authPage').style.display='block';}
+function renderHomeGames(){
+let h=document.getElementById('homeGames');if(!h)return;
+let list=WHEELS.filter(w=>!isOff(w.id));
+if(!list.length){h.innerHTML='<div class="card">كل العجلات مطفية حالياً ⛔</div>';return;}
+h.innerHTML='<div class="grid">'+list.map(w=>'<div class="game-card" onclick="openWheel(\''+w.id+'\')"><div style="font-size:40px">'+w.name.split(' ')[0]+'</div><b>'+w.name+'</b><small>دخول '+getPrice(w.id,'price',w.price)+'$ - ربح '+getPrice(w.id,'win',w.win)+'$</small></div>').join('')+'</div>';
+}
+  async function doRegister(){
+let n=document.getElementById('authName').value.trim(),e=document.getElementById('authEmail').value.trim(),p=document.getElementById('authPass').value.trim();
+if(!n||!e||!p)return pAlert('اكمل كل الحقول');
+if(users[e])return pAlert('هذا الايميل مسجل، سوي دخول');
+let isFirst=Object.keys(users).length===0;
+users[e]={name:n,email:e,pass:p,isOwner:isFirst,avatar:''};
+balances[e]=0;games[e]=[];current=e;
+localStorage.setItem('alam_users',JSON.stringify(users));localStorage.setItem('alam_balances',JSON.stringify(balances));localStorage.setItem('alam_games',JSON.stringify(games));localStorage.setItem('alam_current',current);
+updateBalance();await pAlert(isFirst?'تم التسجيل 👑 انت المالك':'تم التسجيل ✅');goHome();
+}
+async function doLogin(){
+let e=document.getElementById('authEmail').value.trim(),p=document.getElementById('authPass').value.trim();
+if(!users[e]||users[e].pass!==p)return pAlert('ايميل او كلمة سر غلط');
+current=e;localStorage.setItem('alam_current',current);updateBalance();await pAlert('أهلاً '+users[e].name+' 👋');goHome();
+}
+function logout(){current='';localStorage.removeItem('alam_current');goAuth();}
+function openWheel(id){
+toggleMenuIfOpen();if(!current||!users[current]){goAuth();pAlert('سجل دخول أولاً');return;}
+if(isOff(id)){pAlert('هاي العجلة مطفية حالياً ⛔');return;}
+curWheel=id;let w=WHEELS.find(x=>x.id===id);
+hideAll();document.getElementById('gamePage').style.display='block';
+document.getElementById('gameTitle').innerText=w.name;
+document.getElementById('gameInfo').innerText='الدخول '+getPrice(id,'price',w.price)+'$ - الجائزة '+getPrice(id,'win',w.win)+'$';
+renderGameHistory();
+}
+async function spinWheel(){
+let w=WHEELS.find(x=>x.id===curWheel);let price=getPrice(curWheel,'price',w.price),win=getPrice(curWheel,'win',w.win);
+if((balances[current]||0)<price){let go=await pConfirm('رصيدك ما يكفي، تروح للشحن؟');if(go)openPay('deposit');return;}
+let ok=await pConfirm('راح ينخصم '+price+'$ متأكد؟');if(!ok)return;
+balances[current]-=price;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();
+let deg=360*5+Math.floor(Math.random()*360);
+document.getElementById('wheel').style.transform='rotate('+deg+'deg)';
+document.getElementById('wheelResult').innerText='⏳ جاري الدوران...';
+setTimeout(()=>{
+let isWin=Math.random()<0.30;
+if(isWin){balances[current]+=win;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();addGame({amount:win,label:'🏆 فوز '+w.name,date:new Date().toLocaleString('ar-IQ')});document.getElementById('wheelResult').innerText='🎉 مبروك ربحت '+win+'$';}
+else{addGame({amount:-price,label:'😔 خسارة '+w.name,date:new Date().toLocaleString('ar-IQ')});document.getElementById('wheelResult').innerText='😔 حظ اوفر المرة الجاية';}
+renderGameHistory();
+},4200);
+}
+function renderGameHistory(){
+let box=document.getElementById('gameHistory');let h=myGame().slice().reverse().slice(0,10);
+box.innerHTML='<h4 style="margin-top:12px">آخر لعباتك</h4>'+(h.length?h.map(x=>'<div class="history-item"><span>'+x.label+'</span><span>'+x.amount+'$</span></div>').join(''):'<p style="font-size:12px;color:#aaa">ماكو لعب بعد</p>');
+}
+function openPay(type){
+toggleMenuIfOpen();if(!current||!users[current]){goAuth();pAlert('سجل دخول أولاً');return;}
+if(type==='deposit'&&isOff('deposit')){pAlert('الشحن مطفي حالياً ⛔');return;}
+if(type==='withdraw'&&isOff('withdraw')){pAlert('السحب مطفي حالياً ⛔');return;}
+curPay=type;hideAll();document.getElementById('payPage').style.display='block';
+document.getElementById('payTitle').innerText=type==='deposit'?'💳 شحن رصيد':'💸 سحب رصيد';
+}
+async function submitPay(){
+let amt=parseFloat(document.getElementById('payAmount').value),code=document.getElementById('payCode').value.trim();
+if(!amt||amt<=0)return pAlert('اكتب المبلغ');
+if(!code)return pAlert('اكتب كود التحويل');
+if(curPay==='withdraw'&&(balances[current]||0)<amt)return pAlert('رصيدك ما يكفي');
+addGame({amount:0,label:(curPay==='deposit'?'📩 طلب شحن ':'📩 طلب سحب ')+amt+'$ - كود: '+code,date:new Date().toLocaleString('ar-IQ')});
+if(curPay==='withdraw'){balances[current]-=amt;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();}
+await pAlert('✅ تم ارسال الطلب، المالك راح يراجعك قريباً');goHome();
+}
+function openHistory(){toggleMenuIfOpen();if(!current){goAuth();return;}hideAll();document.getElementById('historyPage').style.display='block';let h=myGame().slice().reverse();document.getElementById('historyBox').innerHTML=h.length?h.map(x=>'<div class="history-item"><span>'+x.label+'</span><span>'+x.amount+'$</span></div>').join(''):'<p style="text-align:center;color:#aaa">ماكو سجل بعد</p>';}
+function openInvite(){toggleMenuIfOpen();if(!current){goAuth();return;}hideAll();document.getElementById('invitePage').style.display='block';document.getElementById('inviteLink').value=location.origin+location.pathname+'?ref='+current;}
+function copyInvite(){let i=document.getElementById('inviteLink');i.select();document.execCommand('copy');pAlert('تم نسخ الرابط ✅');}
+
+// روليت 100
+async function openRoulette100(){toggleMenuIfOpen();if(!current||!users[current]){goAuth();await pAlert('سجل دخول أولاً');return}hideAll();document.getElementById('roulette100Page').style.display='block';renderRoulette100();}
+function setRoulette100(k){curRoulette100=k;renderRoulette100();checkRoulette100Countdown();}
+function renderRoulette100(){
+let r=ROULETTES100[curRoulette100];let list=roulette100Data[curRoulette100]||[];
+let price=getPrice('r_'+curRoulette100,'price',r.price),prize=getPrice('r_'+curRoulette100,'win',r.prize);
+document.getElementById('roulette100Info').innerHTML='روليت <b>'+r.name+'</b> - دخول '+price+'$ - جائزة '+prize+'$ - مشتركين '+list.length+'/100';
+let seats=document.getElementById('roulette100Seats');
+seats.innerHTML='';
+for(let i=1;i<=100;i++){let p=list.find(x=>x.spot===i);let d=document.createElement('div');d.style.cssText='padding:8px;border-radius:10px;text-align:center;font-size:11px;background:'+(p?'#ffd700;color:#000':'#2a2a44');d.innerText=p?p.name.slice(0,6):i;seats.appendChild(d);}
+let hb=document.getElementById('roulette100History');let h=myGame().filter(x=>x.label&&x.label.includes('روليت100')).slice().reverse();
+hb.innerHTML=h.length?h.map(x=>'<div class="history-item"><span>'+x.label+'</span><span>'+x.amount+'$</span></div>').join(''):'';
+let w=roulette100Winners[curRoulette100];if(w)document.getElementById('roulette100Info').innerHTML+='<br>🏆 آخر فائز: '+w.name+' - مقعد '+w.spot;
+}
+async function buyRoulette100Seat(){
+if(isOff('roulette_'+curRoulette100)){await pAlert('هذا الروليت مطفي حالياً ⛔');return;}
+if(roulette100Counting){await pAlert('اكتمل العدد - السحب بعد ثواني');return;}
+if(roulette100Buying)return;roulette100Buying=true;setTimeout(()=>roulette100Buying=false,1000);
+let r=ROULETTES100[curRoulette100];let list=roulette100Data[curRoulette100]||[];let u=users[current];if(!u)return;
+let myName=u.name,already=list.find(x=>x.name===myName);
+if(already){await pAlert('انت مشترك أصلاً - مقعدك '+already.spot);return;}
+if(list.length>=r.max){await pAlert('اكتمل العدد، انتظر السحب');return;}
+let price=getPrice('r_'+curRoulette100,'price',r.price);
+if((balances[current]||0)<price){let go=await pConfirm('رصيدك ما يكفي، تروح لصفحة الدفع تشحن؟');if(go)openPay('deposit');return;}
+let ok=await pConfirm('راح ينخصم '+price+'$ للروليت '+r.name+'، متأكد؟');if(!ok)return;
+balances[current]-=price;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();
+let spot=list.length+1;list.push({spot:spot,name:myName,avatar:u.avatar||''});roulette100Data[curRoulette100]=list;saveRoulette100();
+addGame({amount:-price,label:'🎡 دخول روليت100 '+r.name+' - مقعدك '+spot,date:new Date().toLocaleString('ar-IQ')});
+await pAlert('✅ تم الحجز - مقعدك '+spot);renderRoulette100();if(list.length>=r.max)startRoulette100Countdown();
+}
+function startRoulette100Countdown(){if(roulette100Counting)return;roulette100Counting=true;roulette100Left=30;document.getElementById('roulette100Countdown').style.display='block';renderRoulette100();roulette100Timer=setInterval(()=>{roulette100Left--;document.getElementById('roulette100CountdownNum').innerText=roulette100Left;if(roulette100Left<=0){clearInterval(roulette100Timer);doRoulette100Draw();}},1000);}
+function checkRoulette100Countdown(){let list=roulette100Data[curRoulette100]||[];if(list.length>=100&&!roulette100Counting)startRoulette100Countdown();}
+function doRoulette100Draw(){
+let r=ROULETTES100[curRoulette100];let list=roulette100Data[curRoulette100]||[];if(!list.length){roulette100Counting=false;renderRoulette100();return;}
+let winner=list[Math.floor(Math.random()*list.length)];let myName=users[current]?users[current].name:'';let prize=getPrice('r_'+curRoulette100,'win',r.prize);
+list.forEach(p=>{if(p.name===myName){if(p.spot===winner.spot){balances[current]=(balances[current]||0)+prize;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();addGame({amount:prize,label:'🏆 فوز روليت100 '+r.name+' - مقعدك '+p.spot,date:new Date().toLocaleString('ar-IQ')});}else{addGame({amount:0,label:'😔 خسرت روليت100 '+r.name+' - مقعدك '+p.spot+' - الفائز '+winner.name,date:new Date().toLocaleString('ar-IQ')});}}});
+roulette100Winners[curRoulette100]=winner;roulette100WinnerTime[curRoulette100]=Date.now();roulette100Data[curRoulette100]=[];roulette100Counting=false;saveRoulette100();renderRoulette100();pAlert('✅ تم السحب - الفائز: '+winner.name+' - ربح '+prize+'$');
+                                                                       }
+  // يانصيب
+async function openLottery100(){toggleMenuIfOpen();if(!current||!users[current]){goAuth();await pAlert('سجل دخول أولاً');return}if(isOff('lottery')){await pAlert('اليانصيب مطفي حالياً ⛔');return}hideAll();document.getElementById('lottery100Page').style.display='block';renderLottery100();document.getElementById('lottery100OwnerBtn').style.display=(users[current]&&users[current].isOwner)?'block':'none';}
+function makeLottery100Code(){return 'TKT-'+Math.random().toString(36).substring(2,8).toUpperCase();}
+async function buyLottery100Codes(){
+let qty=parseInt(document.getElementById('lottery100Qty').value)||1;if(qty<1)return pAlert('اكتب عدد التكتات');
+if((balances[current]||0)<qty){let go=await pConfirm('رصيدك ما يكفي، تروح لصفحة الدفع؟');if(go)openPay('deposit');return;}
+balances[current]-=qty;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();
+for(let i=0;i<qty;i++)lottery100Data.push({code:makeLottery100Code(),owner:current});
+saveRoulette100();addGame({amount:-qty,label:'🎟️ شراء '+qty+' تكت يانصيب',date:new Date().toLocaleString('ar-IQ')});renderLottery100();await pAlert('✅ تم شراء '+qty+' تكت بنجاح');
+}
+function renderLottery100(){
+document.getElementById('lotteryRoundLabel').innerText=lottery100Round;
+let box=document.getElementById('lottery100Codes');let mine=lottery100Data.filter(c=>c.owner===current);
+if(!mine.length){box.innerHTML='ما عندك تكيتات بعد - جولة جديدة بدأت، اشتري تكيتات';}
+else{box.innerHTML='<b>عندك '+mine.length+' تكت - جولة #'+lottery100Round+':</b>'+mine.map((c,i)=>'<div class="r-code-row"><span>تكت '+(i+1)+': <b>'+c.code+'</b></span><span>👁️</span></div>').join('');}
+let hb=document.getElementById('lottery100History');let h=myGame().filter(x=>x.label&&x.label.includes('يانصيب')).slice().reverse();
+if(!h.length){hb.innerHTML='<p style="text-align:center;color:#888;font-size:12px">ما عندك نتائج بعد</p>';}else{hb.innerHTML=h.map(x=>'<div class="history-item"><span>'+x.label+'</span><span>'+x.amount+'$</span></div>').join('');}
+}
+async function ownerDrawLottery100(){
+let u=users[current];if(!u||!u.isOwner)return;
+if(lottery100Data.length<5){await pAlert('لازم على الأقل 5 تكيتات حتى تسحب');return;}
+let shuffled=[...lottery100Data].sort(()=>Math.random()-0.5);let winners=shuffled.slice(0,5);let winnerCodes=winners.map(w=>w.code);
+let myWin=lottery100Data.filter(c=>c.owner===current&&winnerCodes.includes(c.code)).length;
+if(myWin>0){balances[current]=(balances[current]||0)+(myWin*50);localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();addGame({amount:myWin*50,label:'🏆 فوز يانصيب - '+myWin+' تكت × 50$',date:new Date().toLocaleString('ar-IQ')});}
+else{addGame({amount:0,label:'😔 خسرت يانصيب - جولة #'+lottery100Round,date:new Date().toLocaleString('ar-IQ')});}
+lottery100Data=[];lottery100Round++;saveRoulette100();renderLottery100();await pAlert('✅ تم السحب - 5 فائزين - كل واحد 50$ - جولة جديدة بدأت');
+}
+
+// لوحة تحكم
+function applyAdmin(){
+let b=document.getElementById('adminBannerBar');
+if(adminSettings.banner.on&&adminSettings.banner.text){b.style.display='block';b.innerText='📢 '+adminSettings.banner.text;}else{b.style.display='none';}
+if(adminSettings.maint.on&&current&&!(users[current]&&users[current].isOwner)){
+hideAll();document.getElementById('homePage').style.display='block';
+document.getElementById('homeGames').innerHTML='<div class="card" style="text-align:center;font-weight:900">'+adminSettings.maint.text+'</div>';
+}
+}
+async function openAdmin(){
+toggleMenuIfOpen();if(!current||!users[current]||!users[current].isOwner){await pAlert('هاي الصفحة للمالك فقط 👑');return;}
+hideAll();document.getElementById('adminPage').style.display='block';renderAdmin();
+}
+function renderAdmin(){
+let items=[
+{id:'bronze',name:'🥉 عجلة البرونزي'},{id:'silver',name:'🥈 عجلة الفضي'},{id:'gold',name:'🥇 عجلة الذهبي'},{id:'platinum',name:'💎 عجلة البلاتيني'},{id:'diamond',name:'💠 عجلة الماسي'},
+{id:'roulette_normal',name:'🎡 روليت العادي 100'},{id:'roulette_medium',name:'🔥 روليت المتوسط 100'},{id:'roulette_legend',name:'👑 روليت الأسطوري 100'},
+{id:'lottery',name:'🎟️ اليانصيب'},{id:'deposit',name:'💳 الشحن'},{id:'withdraw',name:'💸 السحب'},{id:'invite',name:'🎁 الدعوة'}
+];
+document.getElementById('adminToggles').innerHTML=items.map(x=>'<div style="display:flex;justify-content:space-between;align-items:center;background:#2a2a44;padding:10px;border-radius:12px;margin-top:8px"><b>'+x.name+'</b><button class="btn small" style="background:'+(isOff(x.id)?'#ff5252':'#00c853')+'" onclick="toggleAdminOff(\''+x.id+'\')">'+(isOff(x.id)?'مطفي ⛔':'شغال ✅')+'</button></div>').join('');
+let ph='';
+WHEELS.forEach(w=>{ph+='<div style="background:#2a2a44;padding:10px;border-radius:12px;margin-top:8px"><b>'+w.name+'</b><div style="display:flex;gap:6px"><input id="p_'+w.id+'_price" type="number" value="'+getPrice(w.id,'price',w.price)+'"><input id="p_'+w.id+'_win" type="number" value="'+getPrice(w.id,'win',w.win)+'"></div><small>سعر الدخول | الجائزة</small></div>';});
+['normal','medium','legend'].forEach(k=>{let r=ROULETTES100[k];ph+='<div style="background:#3a2a1a;padding:10px;border-radius:12px;margin-top:8px"><b>روليت '+r.name+'</b><div style="display:flex;gap:6px"><input id="p_r_'+k+'_price" type="number" value="'+getPrice('r_'+k,'price',r.price)+'"><input id="p_r_'+k+'_win" type="number" value="'+getPrice('r_'+k,'win',r.prize)+'"></div><small>سعر الدخول | الجائزة</small></div>';});
+document.getElementById('adminPrices').innerHTML=ph;
+document.getElementById('adminBanner').value=adminSettings.banner.text||'';
+document.getElementById('adminBannerOn').checked=!!adminSettings.banner.on;
+document.getElementById('adminMaintOn').checked=!!adminSettings.maint.on;
+document.getElementById('adminMaintText').value=adminSettings.maint.text||'';
+document.getElementById('adminTg').value=adminSettings.social.tg||'';
+document.getElementById('adminIg').value=adminSettings.social.ig||'';
+document.getElementById('adminFb').value=adminSettings.social.fb||'';
+let uh='';
+for(let e in users){let u=users[e];uh+='<div style="background:#2a2a44;padding:10px;border-radius:12px;margin-top:8px"><b>'+u.name+'</b> <small>'+e+' - '+(balances[e]||0).toFixed(2)+'$</small><div style="display:flex;gap:6px;margin-top:6px"><input id="addbal_'+e.replace(/[^a-z0-9]/gi,'_')+'" type="number" placeholder="+ رصيد"><button class="btn small green" onclick="adminAddBalance(\''+e+'\')">+ اضافة</button><button class="btn small red" onclick="adminBan(\''+e+'\')">حظر</button></div></div>';}
+document.getElementById('adminUsers').innerHTML=uh||'ماكو اعضاء';
+}
+function toggleAdminOff(id){adminSettings.off[id]=!adminSettings.off[id];saveAdmin();renderAdmin();applyAdmin();}
+function saveAdminPrices(){
+WHEELS.forEach(w=>{adminSettings.prices[w.id+'_price']=parseFloat(document.getElementById('p_'+w.id+'_price').value)||w.price;adminSettings.prices[w.id+'_win']=parseFloat(document.getElementById('p_'+w.id+'_win').value)||w.win;});
+['normal','medium','legend'].forEach(k=>{adminSettings.prices['r_'+k+'_price']=parseFloat(document.getElementById('p_r_'+k+'_price').value)||ROULETTES100[k].price;adminSettings.prices['r_'+k+'_win']=parseFloat(document.getElementById('p_r_'+k+'_win').value)||ROULETTES100[k].prize;});
+saveAdmin();renderAdmin();pAlert('تم حفظ الاسعار ✅');
+}
+function saveAdminBanner(){adminSettings.banner={text:document.getElementById('adminBanner').value,on:document.getElementById('adminBannerOn').checked};saveAdmin();pAlert('تم حفظ الاعلان ✅');}
+function saveAdminMaint(){adminSettings.maint={on:document.getElementById('adminMaintOn').checked,text:document.getElementById('adminMaintText').value};saveAdmin();pAlert('تم حفظ الصيانة ✅');}
+function saveAdminSocial(){adminSettings.social={tg:document.getElementById('adminTg').value,ig:document.getElementById('adminIg').value,fb:document.getElementById('adminFb').value};saveAdmin();pAlert('تم حفظ الروابط ✅');}
+function adminAddBalance(email){
+let inp=document.querySelector('[id="addbal_'+email.replace(/[^a-z0-9]/gi,'_')+'"]');let v=parseFloat(inp.value);if(!v)return pAlert('اكتب المبلغ');
+balances[email]=(balances[email]||0)+v;localStorage.setItem('alam_balances',JSON.stringify(balances));updateBalance();renderAdmin();pAlert('تم اضافة '+v+'$ لـ '+users[email].name);
+}
+async function adminBan(email){
+let ok=await pConfirm('تحظر '+users[email].name+' ؟ راح ينحذف حسابه');if(!ok)return;
+delete users[email];delete balances[email];localStorage.setItem('alam_users',JSON.stringify(users));localStorage.setItem('alam_balances',JSON.stringify(balances));renderAdmin();
+}
+async function adminResetRoulettes(){let ok=await pConfirm('تصفر كل الروليتات 100 ؟');if(!ok)return;roulette100Data={normal:[],medium:[],legend:[]};saveRoulette100();pAlert('تم التصفير ✅');}
+async function adminResetLottery(){let ok=await pConfirm('تصفر اليانصيب ؟');if(!ok)return;lottery100Data=[];saveRoulette100();pAlert('تم التصفير ✅');}
+
+// تشغيل
+applyAdmin();
+if(current&&users[current]){updateBalance();document.getElementById('homeUser').innerText='أهلاً '+users[current].name+' 👋';goHome();}else{renderHomeGames();goHome();if(!current)goAuth();}
+</script></body></html>
